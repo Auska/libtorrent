@@ -141,12 +141,13 @@ resume_load_progress(Download download, const Object& object) {
     // the file, else clear the range. This should be set only for
     // files that have completed and got no indices in
     // TransferList::completed_list().
-    if (mtimeValue == ~int64_t{2} || mtimeValue != fs.modified_time()) {
-      LT_LOG_LOAD_FILE("resume data doesn't include uncertain pieces, range:clear|recheck", 0);
-      download.update_range(Download::update_range_clear | Download::update_range_recheck,
-                            (*listItr)->range().first, (*listItr)->range().second);
-      continue;
-    }
+    // if (mtimeValue == ~int64_t{2} || mtimeValue != fs.modified_time()) {
+    // if (mtimeValue == ~int64_t{2}) {
+    //   LT_LOG_LOAD_FILE("resume data doesn't include uncertain pieces, range:clear|recheck", 0);
+    //   download.update_range(Download::update_range_clear | Download::update_range_recheck,
+    //                         (*listItr)->range().first, (*listItr)->range().second);
+    //   continue;
+    // }
 
     LT_LOG_LOAD_FILE("no recheck needed", 0);
   }

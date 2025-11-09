@@ -81,7 +81,8 @@ ChunkSelector::update_priorities() {
   m_sharedQueue.clear();
 
   if (m_position == invalid_chunk)
-    m_position = random() % size();
+    // m_position = random() % size();
+    m_position = 0;
 
   advance_position();
 }
@@ -102,10 +103,10 @@ ChunkSelector::find(PeerChunks* pc, [[maybe_unused]] bool highPriority) {
   // Randomize position on average every 16 chunks to prevent
   // inefficient distribution with a slow seed and fast peers
   // all arriving at the same position.
-  if ((random() & 63) == 0) {
-    m_position = random() % size();
-    queue->clear();
-  }
+  // if ((random() & 63) == 0) {
+  //   m_position = random() % size();
+  //   queue->clear();
+  // }
 
   if (queue->is_enabled()) {
 

@@ -66,6 +66,7 @@ public:
 
   virtual void        init_thread() = 0;
   void                init_thread_local();
+  virtual void        init_thread_post_local();
 
   // It is assumed that any thread-specific resources no longer are accessed at the time
   // cleanup_thread is called, or that those resources remain safe to call.
@@ -90,7 +91,7 @@ public:
   void                event_loop();
 
 protected:
-  friend class torrent::Poll;
+  friend class torrent::net::Poll;
   friend class ThreadInternal;
 
   net::Resolver*      resolver()  { return m_resolver.get(); }
@@ -122,7 +123,7 @@ protected:
 
   int                          m_instrumentation_index;
 
-  std::unique_ptr<Poll>            m_poll;
+  std::unique_ptr<net::Poll>       m_poll;
   std::unique_ptr<net::Resolver>   m_resolver;
   std::unique_ptr<Scheduler>       m_scheduler;
   class signal_bitfield            m_signal_bitfield;

@@ -8,8 +8,8 @@
 #include <unistd.h>
 
 #include "torrent/exceptions.h"
+#include "torrent/net/poll.h"
 #include "torrent/net/resolver.h"
-#include "torrent/poll.h"
 #include "torrent/utils/chrono.h"
 #include "torrent/utils/log.h"
 #include "torrent/utils/scheduler.h"
@@ -23,7 +23,7 @@ thread_local Thread* Thread::m_self{nullptr};
 
 Thread::Thread() :
     m_instrumentation_index(INSTRUMENTATION_POLLING_DO_POLL_OTHERS - INSTRUMENTATION_POLLING_DO_POLL),
-    m_poll(Poll::create()),
+    m_poll(net::Poll::create()),
     m_scheduler(new Scheduler) {
 
   std::tie(m_interrupt_sender, m_interrupt_receiver) = SignalInterrupt::create_pair();
@@ -47,7 +47,7 @@ Thread::start_thread() {
   if (!is_initialized())
     throw internal_error("Called Thread::start_thread on an uninitialized object.");
 
-  if (pthread_create(&m_thread, NULL, &Thread::enter_event_loop, this))
+  if (pthread_create(&m_thread, nullptr, &Thread::enter_event_loop, this))
     throw internal_error("Failed to create thread.");
 
   while (m_state != STATE_ACTIVE)
@@ -60,7 +60,7 @@ Thread::stop_thread_wait() {
   m_flags |= flag_do_shutdown;
   interrupt();
 
-  pthread_join(m_thread, NULL);
+  pthread_join(m_thread, nullptr);
   assert(is_inactive());
 }
 
@@ -126,6 +126,7 @@ Thread::enter_event_loop(void* thread) {
     throw internal_error("Thread::enter_event_loop called with a null pointer thread");
 
   t->init_thread_local();
+  t->init_thread_post_local();
   t->event_loop();
   t->cleanup_thread_local();
 
@@ -138,6 +139,7 @@ Thread::event_loop() {
 
   try {
 
+    m_poll->open(m_interrupt_receiver.get());
     m_poll->insert_read(m_interrupt_receiver.get());
 
     while (true) {
@@ -172,6 +174,7 @@ Thread::event_loop() {
   // Some test, and perhaps other code, segfaults on this.
   // TODO: Test
   //m_poll->remove_read(m_interrupt_receiver.get());
+  //m_poll->close(m_interrupt_receiver.get());
 
   auto previous_state = STATE_ACTIVE;
 
@@ -204,6 +207,10 @@ Thread::init_thread_local() {
 
   if (!m_state.compare_exchange_strong(previous_state, STATE_ACTIVE))
     throw internal_error("Thread::init_thread_local() : " + std::string(name()) + " : called on an object that is not in the initialized state.");
+}
+
+void
+Thread::init_thread_post_local() {
 }
 
 void
@@ -290,7 +297,7 @@ void                      callback(void* target, std::function<void ()>&& fn) { 
 void                      cancel_callback(void* target)                       { utils::ThreadInternal::cancel_callback(target); }
 void                      cancel_callback_and_wait(void* target)              { utils::ThreadInternal::cancel_callback_and_wait(target); }
 
-Poll*                     poll()                                              { return utils::ThreadInternal::poll(); }
+net::Poll*                poll()                                              { return utils::ThreadInternal::poll(); }
 net::Resolver*            resolver()                                          { return utils::ThreadInternal::resolver(); }
 utils::Scheduler*         scheduler()                                         { return utils::ThreadInternal::scheduler(); }
 

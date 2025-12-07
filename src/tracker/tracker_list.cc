@@ -5,6 +5,7 @@
 #include <functional>
 #include <random>
 
+#include "rak/string_manip.h"
 #include "torrent/exceptions.h"
 #include "torrent/download_info.h"
 #include "torrent/tracker/manager.h"
@@ -449,6 +450,14 @@ void
 TrackerList::receive_failed(tracker::Tracker tracker, const std::string& msg) {
   LT_LOG("received failure : requester:%p group:%u url:%s msg:'%s'",
          tracker.get_worker(), tracker.group(), tracker.url().c_str(), msg.c_str());
+
+  // Update peer_id when encountering "Could not parse bencoded data, empty reply" error
+  if (msg == "Could not parse bencoded data, empty reply") {
+    std::string new_peer_id = PEER_NAME + rak::generate_random<std::string>(20 - std::string(PEER_NAME).size());
+    m_info->mutable_local_id().assign(new_peer_id.c_str());
+    tracker.get_worker()->m_info.local_id.assign(new_peer_id.c_str());
+    LT_LOG("updated peer_id due to bencoded data parsing error", 0);
+  }
 
   auto itr = find(tracker);
 

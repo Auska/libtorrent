@@ -39,23 +39,54 @@
 
 #include "config.h"
 
-#include <openssl/rc4.h>
+#include <cstdint>
 
 namespace torrent {
 
 class RC4 {
 public:
-  RC4()                                                               { }
+  RC4() : m_i(0), m_j(0) { }
 
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-  RC4(const unsigned char key[], int len)                             { RC4_set_key(&m_key, len, key); }
+  RC4(const unsigned char key[], int len) : m_i(0), m_j(0) {
+    init(key, len);
+  }
 
-  void crypt(const void* indata, void* outdata, unsigned int length)  { ::RC4(&m_key, length, static_cast<const unsigned char*>(indata), static_cast<unsigned char*>(outdata)); }
-  void crypt(void* data, unsigned int length)                         { ::RC4(&m_key, length, static_cast<unsigned char*>(data), static_cast<unsigned char*>(data)); }
+  void init(const unsigned char key[], int len) {
+    // Key Scheduling Algorithm (KSA)
+    for (int i = 0; i < 256; i++)
+      m_state[i] = i;
+
+    int j = 0;
+    for (int i = 0; i < 256; i++) {
+      j = (j + m_state[i] + key[i % len]) & 0xff;
+      std::swap(m_state[i], m_state[j]);
+    }
+
+    m_i = 0;
+    m_j = 0;
+  }
+
+  void crypt(const void* indata, void* outdata, unsigned int length) {
+    const unsigned char* input = static_cast<const unsigned char*>(indata);
+    unsigned char* output = static_cast<unsigned char*>(outdata);
+
+    for (unsigned int k = 0; k < length; k++) {
+      // Pseudo-random Generation Algorithm (PRGA)
+      m_i = (m_i + 1) & 0xff;
+      m_j = (m_j + m_state[m_i]) & 0xff;
+      std::swap(m_state[m_i], m_state[m_j]);
+      output[k] = input[k] ^ m_state[(m_state[m_i] + m_state[m_j]) & 0xff];
+    }
+  }
+
+  void crypt(void* data, unsigned int length) {
+    crypt(data, data, length);
+  }
 
 private:
-  RC4_KEY m_key;
-
+  uint8_t m_state[256];
+  uint8_t m_i;
+  uint8_t m_j;
 };
 
 };

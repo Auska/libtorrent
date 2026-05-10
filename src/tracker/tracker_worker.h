@@ -84,6 +84,10 @@ protected:
   // The slots should put a work order into the tracker controller thread, which will be correctly
   // ordered as it pertains to a single tracker's slot calls.
 
+  // Generate a new random peer ID suffix and update m_info.local_id.
+  // Used when a tracker appears to reject the current peer ID.
+  void                rotate_peer_id();
+
   std::function<void()>              m_slot_enabled;
   std::function<void()>              m_slot_disabled;
   std::function<void(AddressList&&)> m_slot_success;

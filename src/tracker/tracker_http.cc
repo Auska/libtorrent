@@ -390,8 +390,11 @@ TrackerHttp::receive_done() {
   if (m_data->fail()) {
     auto dump = utils::sanitize_string_with_tags(m_data->str());
 
-    if (dump.empty())
+    if (dump.empty()) {
+      LT_LOG("empty reply, rotating peer id and retrying", 0);
+      rotate_peer_id();
       return receive_failed("Could not parse bencoded data, empty reply");
+    }
 
     return receive_failed("Could not parse bencoded data: " + dump.substr(0,99));
   }

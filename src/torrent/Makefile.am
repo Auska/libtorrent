@@ -189,6 +189,7 @@ libtorrent_torrent_net_include_HEADERS = \
 	net/resolver.h \
 	net/socket_address.h \
 	net/socket_address_key.h \
+	net/thread_net.h \
 	net/types.h
 
 libtorrent_torrent_peer_includedir = $(includedir)/torrent/peer

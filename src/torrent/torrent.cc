@@ -151,7 +151,18 @@ download_add(Object* object, uint32_t tracker_key) {
     download->main()->set_metadata_size(metadata_size);
   }
 
-  std::string local_id = PEER_NAME + generate_random(20 - std::string(PEER_NAME).size());
+  // Use custom peer_id prefix if set, otherwise fall back to compiled-in PEER_NAME.
+  // Peer ID is limited to 20 bytes total by the BitTorrent protocol.
+  std::string local_id = manager->peer_id_prefix();
+  if (local_id.empty()) {
+    local_id = PEER_NAME + generate_random(20 - std::string(PEER_NAME).size());
+  } else {
+    if (local_id.size() >= 20) {
+      local_id = local_id.substr(0, 20);
+    } else {
+      local_id += generate_random(20 - local_id.size());
+    }
+  }
 
   download->set_hash_queue(ThreadMain::thread_main()->hash_queue());
   download->initialize(infoHash, local_id, tracker_key);
@@ -211,6 +222,16 @@ download_set_priority(Download d, uint32_t pri) {
     throw internal_error("torrent::download_set_priority(...) received an invalid priority.");
 
   ResourceManager::set_priority(itr, pri);
+}
+
+const std::string&
+peer_id_prefix() {
+  return manager->peer_id_prefix();
+}
+
+void
+set_peer_id_prefix(const std::string& id) {
+  manager->set_peer_id_prefix(id);
 }
 
 } // namespace torrent

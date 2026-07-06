@@ -37,6 +37,15 @@ public:
 
   void                receive_tick();
 
+  const std::string&  peer_id_prefix() const { return m_peer_id_prefix; }
+  void                set_peer_id_prefix(const std::string& s) {
+    // Peer ID is limited to 20 bytes total by the BitTorrent protocol.
+    if (s.size() > 20)
+      m_peer_id_prefix = s.substr(0, 20);
+    else
+      m_peer_id_prefix = s;
+  }
+
 private:
   std::unique_ptr<ChunkManager>      m_chunk_manager;
   std::unique_ptr<DownloadManager>   m_download_manager;
@@ -48,6 +57,8 @@ private:
 
   Throttle*             m_uploadThrottle;
   Throttle*             m_downloadThrottle;
+
+  std::string           m_peer_id_prefix;
 
   unsigned int          m_ticks{0};
   utils::SchedulerEntry m_task_tick;

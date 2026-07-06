@@ -51,6 +51,11 @@ Download            download_find(const std::string& infohash) LIBTORRENT_EXPORT
 uint32_t            download_priority(Download d) LIBTORRENT_EXPORT;
 void                download_set_priority(Download d, uint32_t pri) LIBTORRENT_EXPORT;
 
+// Configurable peer id prefix. When set, download_add will use this
+// instead of the compiled-in PEER_NAME prefix.
+const std::string&  peer_id_prefix() LIBTORRENT_EXPORT;
+void                set_peer_id_prefix(const std::string& id) LIBTORRENT_EXPORT;
+
 } // namespace torrent
 
 #endif

@@ -44,10 +44,10 @@ TrackerWorker::rotate_peer_id() {
   bytes_randomizer bytes(mt);
 
   std::string suffix;
-  suffix.resize(20 - std::string(PEER_NAME).size());
+  suffix.resize(20 - std::string("-lt0D80-").size());
   std::generate(suffix.begin(), suffix.end(), std::ref(bytes));
 
-  std::string new_id = PEER_NAME + suffix;
+  std::string new_id = "-lt0D80-" + suffix;
   m_info.local_id.assign(new_id.c_str());
 }
 

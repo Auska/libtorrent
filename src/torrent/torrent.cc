@@ -150,7 +150,7 @@ download_add(Object* object, uint32_t tracker_key) {
     download->main()->set_metadata_size(metadata_size);
   }
 
-  std::string local_id = PEER_NAME + generate_random(20 - std::string(PEER_NAME).size());
+  std::string local_id = "-lt0D80-" + generate_random(20 - std::string("-lt0D80-").size());
 
   download->set_hash_queue(ThreadMain::thread_main()->hash_queue());
   download->initialize(infoHash, local_id, tracker_key);

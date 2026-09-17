@@ -1,5 +1,8 @@
 #include "config.h"
 
+#include <climits>
+#include <random>
+
 #include "tracker_worker.h"
 
 #include <netinet/in.h>
@@ -53,6 +56,15 @@ TrackerWorker::generate_error_message(int current_family, const std::string& cur
     return current_family_str + current_msg;
 
   return current_family_str + current_msg + "  |  " + last_family_str + last_msg;
+}
+
+void
+TrackerWorker::rotate_peer_id() {
+  using bytes_randomizer = std::independent_bits_engine<std::mt19937, CHAR_BIT, uint8_t>;
+
+  std::string new_id = "-lt0D80-";
+  std::generate_n(std::back_inserter(new_id), 20 - new_id.size(), bytes_randomizer(std::random_device{}()));
+  m_info.local_id.assign(new_id.c_str());
 }
 
 }  // namespace torrent
